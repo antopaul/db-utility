@@ -22,6 +22,9 @@ public class SQLBase {
 	protected Properties config = null;
 	protected String configFile = null;
 	protected String sqlFile = null;
+	protected static String DEFAULT_CONN = "0";
+	protected static String SCHEMA1_CONN = "SCHEMA1";
+	protected static String SCHEMA2_CONN = "SCHEMA2";
 
 	protected void loadConfig(String configFile) {
 		Properties props = new Properties();
@@ -74,7 +77,9 @@ public class SQLBase {
 			pos = sb.indexOf(";", pos + 1);
 			count++;
 		}
-		
+		if(sqlList.size() == 0) {
+			System.out.println("No SQL loaded. Make sure that SQL is ended with ;");
+		}
 		System.out.println("Loaded " + count + " SQL");
 	}
 
@@ -112,7 +117,15 @@ public class SQLBase {
 	}
 	
 	public Connection getConnection() {
-		return connMap.get("0");
+		return connMap.get(DEFAULT_CONN);
+	}
+	
+	public Connection getSchema1Connection() {
+		return connMap.get("SCHEMA1_CONN");
+	}
+	
+	public Connection getSchema2Connection() {
+		return connMap.get("SCHEMA2_CONN");
 	}
 
 	protected void commit() throws SQLException {
@@ -161,14 +174,14 @@ public class SQLBase {
 		// if no schema specified, do not use prefix to look up connection string
 		if(schema1 == null || schema2 == null) {
 			Connection conn = createConnection(null);
-			String schema = "" + 0;
+			String schema = DEFAULT_CONN;
 			connMap.put(schema, conn);
 		} else {
 			Connection conn1 = createConnection(schema1);
-			connMap.put(schema1, conn1);
+			connMap.put("SCHEMA1_CONN", conn1);
 			
 			Connection conn2 = createConnection(schema2);
-			connMap.put(schema2, conn2);
+			connMap.put("SCHEMA2_CONN", conn2);
 		}
 	}
 

@@ -27,6 +27,10 @@ public class SQLExecuteFromFile extends SQLBase {
 			loadConfig(CONFIG_FILE);
 			addShutdownHook();
 			readFile();
+			if(sqlList.size() == 0) {
+				System.out.println("No SQL to execute.....");
+				return;
+			}
 			createConnections();
 			executeSQL();
 			EXIT_STATUS = 0;

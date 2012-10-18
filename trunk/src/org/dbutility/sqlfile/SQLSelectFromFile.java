@@ -98,7 +98,7 @@ public class SQLSelectFromFile extends SQLBase {
 			for (String sqlStr : sqlList) {
 				String sql = sqlStr;
 				CURRENT_SQL = sql;
-				if("true".equalsIgnoreCase(config.getProperty("printSQL"))) {
+				if("true".equalsIgnoreCase(config.getProperty("printsql"))) {
 					System.out.print(count + 1 + " - " + sql);
 				}
 				Connection conn = getConnection();

@@ -38,6 +38,10 @@ public class SQLSelectFromFile extends SQLBase {
 			addShutdownHook();
 			// TODO execute multiple SQL files
 			readFile();
+			if(sqlList.size() == 0) {
+				System.out.println("No SQL to execute.....");
+				return;
+			}
 			createConnections();
 			executeSQL();
 			EXIT_STATUS = 0;

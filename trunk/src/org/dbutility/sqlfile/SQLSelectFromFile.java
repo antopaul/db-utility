@@ -36,14 +36,16 @@ public class SQLSelectFromFile extends SQLBase {
 		try {
 			loadConfig(CONFIG_FILE);
 			addShutdownHook();
-			// TODO execute multiple SQL files
-			readFile();
+			createConnections();
+			for(int i=0; i < sqlFileList.size(); i++) {
+				readFile(sqlFileList.get(i));
 			if(sqlList.size() == 0) {
-				System.out.println("No SQL to execute.....");
+					System.out.println("No SQL to execute for file " + sqlFile);
 				return;
 			}
-			createConnections();
+				
 			executeSQL();
+			}
 			EXIT_STATUS = 0;
 			printThresholdExceeded();
 			timing = sortByValue(timing);
@@ -121,7 +123,7 @@ public class SQLSelectFromFile extends SQLBase {
 				timing.put(count, time);
 				count++;
 				
-				if("true".equalsIgnoreCase(config.getProperty("printSQL"))) {
+				if("true".equalsIgnoreCase(config.getProperty("printsql"))) {
 					System.out.println(" - took " + time + "ms");
 				}
 				

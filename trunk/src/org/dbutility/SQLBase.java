@@ -9,8 +9,10 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -21,10 +23,12 @@ public class SQLBase {
 	private Map<String, Connection> connMap = new HashMap<String, Connection>();
 	protected Properties config = null;
 	protected String configFile = null;
+	protected List<String> sqlFileList = new LinkedList<String>();
 	protected String sqlFile = null;
 	protected static String DEFAULT_CONN = "0";
 	protected static String SCHEMA1_CONN = "SCHEMA1";
 	protected static String SCHEMA2_CONN = "SCHEMA2";
+	protected static String FILE_SEPERATOR = ",";
 
 	protected void loadConfig(String configFile) {
 		Properties props = new Properties();
@@ -37,6 +41,21 @@ public class SQLBase {
 		}
 		this.configFile = configFile;
 		config = props;
+		loadSqlFileList();
+	}
+	
+	protected void loadSqlFileList() {
+		String filenames = config.getProperty("sqlfile");
+		if(filenames == null) {
+			System.out.println("No sqlfile specified.");
+			System.exit(1);
+		}
+		if(filenames.indexOf(FILE_SEPERATOR) == -1) {
+			sqlFileList.add(filenames);
+		} else {
+			String[] names = filenames.split(FILE_SEPERATOR);
+			sqlFileList.addAll(Arrays.asList(names));
+		}
 	}
 
 	public String formatTime(long dt) {
@@ -63,10 +82,11 @@ public class SQLBase {
 		return sb.toString();
 	}
 
-	protected void readFile() throws Exception {
-		System.out.println("Reading from file " + config.getProperty("sqlfile"));
-		sqlFile = config.getProperty("sqlfile");
-		StringBuilder sb = readFile("sql/" + config.getProperty("sqlfile"));
+	protected void readFile(String file) throws Exception {
+		System.out.println("Reading from file " + file);
+		sqlFile = file;
+		sqlList.clear();
+		StringBuilder sb = loadFile("sql/" + sqlFile);
 		int pos = sb.indexOf(";");
 		int count = 0;
 		int start = 0;
@@ -83,7 +103,7 @@ public class SQLBase {
 		System.out.println("Loaded " + count + " SQL");
 	}
 
-	protected StringBuilder readFile(String fileName) {
+	protected StringBuilder loadFile(String fileName) {
 		
 		BufferedReader reader = null;
 		StringBuilder sb = new StringBuilder();

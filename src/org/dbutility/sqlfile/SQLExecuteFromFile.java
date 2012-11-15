@@ -26,13 +26,16 @@ public class SQLExecuteFromFile extends SQLBase {
 		try {
 			loadConfig(CONFIG_FILE);
 			addShutdownHook();
-			readFile();
+			createConnections();
+			for(int i=0; i < sqlFileList.size(); i++) {
+				readFile(sqlFileList.get(i));
 			if(sqlList.size() == 0) {
-				System.out.println("No SQL to execute.....");
+					System.out.println("No SQL to execute for file " + sqlFile);
 				return;
 			}
-			createConnections();
 			executeSQL();
+			}
+			
 			EXIT_STATUS = 0;
 		} catch (Throwable t) {
 			t.printStackTrace();

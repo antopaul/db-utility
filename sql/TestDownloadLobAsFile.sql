@@ -1,0 +1,1 @@
+SELECT blob_obj FROM test WHERE id = 100;

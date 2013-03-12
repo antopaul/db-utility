@@ -207,6 +207,7 @@ public class SQLBase {
 
 	protected Connection createConnection(String schema)  {
 	    
+		boolean isOk = true;
 		
 		if(schema != null) {
 			System.out.println("Creating connection for schema - " + schema);
@@ -230,7 +231,28 @@ public class SQLBase {
 	        passwd = config.getProperty(schema + ".passwd");
 	        driver = config.getProperty(schema + ".driver");
 		}
+		
+		if(url == null) {
+			System.out.println("Please configure url property.");
+			isOk = false;
+		}
+		if(userid == null) {
+			System.out.println("Please configure userid property.");
+			isOk = false;
+		}
+		if(passwd == null) {
+			System.out.println("Please configure passwd property.");
+			isOk = false;
+		}
+		if(driver == null) {
+			System.out.println("Please configure driver property.");
+			isOk = false;
+		}
         
+		if(!isOk) {
+			System.exit(1);
+		}
+			
         System.out.println("url - " + url + ", user - " + userid);
         
         try {

@@ -104,8 +104,9 @@ public class DownloadLobAsFile extends SQLBase {
 			int count = -1;
 			
 			while((count = is.read(b)) != -1) {
-				fos.write(b);
+				fos.write(b, 0, count);
 			}
+			
 			fos.close();
 			
 			System.out.println("Downloaded file " + newfile);

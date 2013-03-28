@@ -1,0 +1,1 @@
+java -cp lib\ojdbc6.jar;.\classes org.dbutility.lob.DownloadLobAsFile

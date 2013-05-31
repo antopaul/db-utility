@@ -48,7 +48,7 @@ public class SQLBase {
 		String filenames = config.getProperty("sqlfile");
 		if(filenames == null) {
 			System.out.println("No sqlfile specified.");
-			System.exit(1);
+			return;
 		}
 		if(filenames.indexOf(FILE_SEPERATOR) == -1) {
 			sqlFileList.add(filenames);

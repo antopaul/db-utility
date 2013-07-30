@@ -62,6 +62,9 @@ public class ExportAsInsertsOracle extends SQLBase {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			if(sourceConn != null) {
+				try { sourceConn.close(); } catch (SQLException e) { }
+			}
 		}
 	}
 	
@@ -80,59 +83,71 @@ public class ExportAsInsertsOracle extends SQLBase {
 		}
 		
 		insertSql.append(")").append(" VALUES("); //.append(values).append(")");
-		
-		while(rs.next()) {
-			StringBuilder values = new StringBuilder();
-			int index = 1;
-			isFirst = true;
-			for(Integer type : metaData) {
-				if(!isFirst) {
-					values.append(",");
+		try {
+			while(rs.next()) {
+				StringBuilder values = new StringBuilder();
+				int index = 1;
+				isFirst = true;
+				for(Integer type : metaData) {
+					if(!isFirst) {
+						values.append(",");
+					}
+					switch (type) {
+					case Types.DATE:
+						Date d = rs.getDate(index);
+						String dateStr = "";
+						if(d != null) {
+							String s = dateSdf.format(d);
+							dateStr = "to_date('" + s + "','dd-MON-yyyy')";  
+						} else {
+							values.append(dateStr);
+						}
+						break;
+					case Types.TIMESTAMP:
+						Timestamp ts = rs.getTimestamp(index);
+						String tsStr = "";
+						if(ts != null) {
+							String s = tsSdf.format(ts);
+							tsStr = "to_timestamp('" + s + "','dd-MON-yyyy HH24:MI:SS.FF')";
+							values.append(tsStr);
+						} else {
+							values.append("'").append(tsStr).append("'");
+						}
+						break;
+					default:
+						String s = rs.getString(index);
+						if(s != null) {
+							values.append("'").append(s).append("'");
+						} else {
+							values.append(s);
+						}
+					}
+					index++;
+					isFirst = false;
 				}
-				switch (type) {
-				case Types.DATE:
-					Date d = rs.getDate(index);
-					String dateStr = "";
-					if(d != null) {
-						String s = dateSdf.format(d);
-						dateStr = "to_date('" + s + "','dd-MON-yyyy')";  
-					} else {
-						values.append(dateStr);
-					}
-					break;
-				case Types.TIMESTAMP:
-					Timestamp ts = rs.getTimestamp(index);
-					String tsStr = "";
-					if(ts != null) {
-						String s = tsSdf.format(ts);
-						tsStr = "to_timestamp('" + s + "','dd-MON-yyyy HH24:MI:SS.FF')";
-						values.append(tsStr);
-					} else {
-						values.append("'").append(tsStr).append("'");
-					}
-					break;
-				default:
-					String s = rs.getString(index);
-					if(s != null) {
-						values.append("'").append(s).append("'");
-					} else {
-						values.append(s);
-					}
-				}
-				index++;
-				isFirst = false;
+				StringBuilder sql = new StringBuilder(insertSql);
+				sql.append(values).append(");");
+				System.out.println(sql);	
 			}
-			StringBuilder sql = new StringBuilder(insertSql);
-			sql.append(values).append(");");
-			System.out.println(sql);	
+		} finally {
+			if(sourceRs != null) {
+				sourceRs.close();
+			}
+			if(sourceStmt != null) {
+				sourceStmt.close();
+			}
 		}
-		
 	}
 	
 	protected void getTableData(String tableName) {
 
 		try {
 			sourceConn = getConnection();
+			try {
+				if(sourceConn instanceof oracle.jdbc.OracleConnection) {
+					((oracle.jdbc.OracleConnection) sourceConn).setDefaultRowPrefetch(1000);
+				}
+			} catch(Exception e) {}
 			sourceStmt = sourceConn.createStatement();
 			sourceRs = sourceStmt.executeQuery("SELECT * FROM " + tableName);
 		} catch(SQLException sqle) {

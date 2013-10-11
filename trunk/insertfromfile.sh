@@ -1,0 +1,1 @@
+java -cp ./lib/dbutility.jar:./lib/ojdbc6.jar org.dbutility.sqlfile.SQLExecuteFromFile

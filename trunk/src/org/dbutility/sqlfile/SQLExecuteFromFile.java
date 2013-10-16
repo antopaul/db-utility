@@ -30,7 +30,7 @@ public class SQLExecuteFromFile extends SQLBase {
 			for(int i=0; i < sqlFileList.size(); i++) {
 				readFile(sqlFileList.get(i));
 			if(sqlList.size() == 0) {
-					System.out.println("No SQL to execute for file " + sqlFile);
+					log("No SQL to execute for file " + sqlFile);
 				return;
 			}
 			executeSQL();
@@ -49,7 +49,7 @@ public class SQLExecuteFromFile extends SQLBase {
 	}
 	
 	protected void executeSQL() throws Exception {
-		System.out.println("Executing sql from file " + sqlFile);
+		log("Executing sql from file " + sqlFile);
 
 		int count = 0;
 		long overall = 0;
@@ -70,7 +70,7 @@ public class SQLExecuteFromFile extends SQLBase {
 				long time = end - start;
 				overall += time;
 				count++;
-				
+				commitEvery(count);
 				if("true".equalsIgnoreCase(config.getProperty("printsql"))) {
 					System.out.println(", updated - " + c + " records, took " + time + "ms");
 				}
@@ -78,10 +78,10 @@ public class SQLExecuteFromFile extends SQLBase {
 			}
 			commitOrRollback();
 		} catch(SQLException e) {
-			System.out.println("Error executing SQL - " + CURRENT_SQL);
+			log("Error executing SQL - " + CURRENT_SQL);
 			throw new RuntimeException(e);
 		}
-		System.out.println("Finished executing SQL in " + formatTime(overall));
+		log("Finished executing SQL in " + formatTime(overall));
 	}
 	
 	protected void addShutdownHook() {
@@ -89,7 +89,7 @@ public class SQLExecuteFromFile extends SQLBase {
 
 			public void run() {
 				if(EXIT_STATUS == 1) {
-					System.out.println("Current SQL " + CURRENT_SQL);
+					log("Current SQL " + CURRENT_SQL);
 				}
 				
 			}}) );

@@ -8,8 +8,11 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -29,6 +32,8 @@ public class SQLBase {
 	protected static String SCHEMA1_CONN = "SCHEMA1";
 	protected static String SCHEMA2_CONN = "SCHEMA2";
 	protected static String FILE_SEPERATOR = ",";
+	
+	protected DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss SSS");
 
 	protected void loadConfig(String configFile) {
 		Properties props = new Properties();
@@ -47,7 +52,7 @@ public class SQLBase {
 	protected void loadSqlFileList() {
 		String filenames = config.getProperty("sqlfile");
 		if(filenames == null) {
-			System.out.println("No sqlfile specified.");
+			log("No sqlfile specified.");
 			return;
 		}
 		if(filenames.indexOf(FILE_SEPERATOR) == -1) {
@@ -83,7 +88,7 @@ public class SQLBase {
 	}
 
 	protected void readFile(String file) throws Exception {
-		System.out.println("Reading from file " + file);
+		log("Reading from file " + file);
 		sqlFile = file;
 		sqlList.clear();
 		StringBuilder sb = loadFile("sql/" + sqlFile);
@@ -98,9 +103,9 @@ public class SQLBase {
 			count++;
 		}
 		if(sqlList.size() == 0) {
-			System.out.println("No SQL loaded. Make sure that SQL is ended with ;");
+			log("No SQL loaded. Make sure that SQL is ended with ;");
 		}
-		System.out.println("Loaded " + count + " SQL");
+		log("Loaded " + count + " SQL");
 	}
 
 	protected StringBuilder loadFile(String fileName) {
@@ -174,7 +179,7 @@ public class SQLBase {
 			if("true".equalsIgnoreCase(commitdbchanges)) {
 				isCommit = true;
 			}
-			System.out.println("commitdbchanges is " + isCommit);
+			log("commitdbchanges is " + isCommit);
 		}
 		if(isCommit) {
 			commit();
@@ -184,7 +189,7 @@ public class SQLBase {
 	}
 	
 	protected void createConnections() throws Exception {
-		System.out.println("Adding connections to map");
+		log("Adding connections to map");
 		String schema1 = null;
 		String schema2 = null;
 		
@@ -210,9 +215,9 @@ public class SQLBase {
 		boolean isOk = true;
 		
 		if(schema != null) {
-			System.out.println("Creating connection for schema - " + schema);
+			log("Creating connection for schema - " + schema);
 		} else {
-			System.out.println("Creating connection");
+			log("Creating connection");
 		}
         
 		String url = null;
@@ -233,19 +238,19 @@ public class SQLBase {
 		}
 		
 		if(url == null) {
-			System.out.println("Please configure url property.");
+			log("Please configure url property.");
 			isOk = false;
 		}
 		if(userid == null) {
-			System.out.println("Please configure userid property.");
+			log("Please configure userid property.");
 			isOk = false;
 		}
 		if(passwd == null) {
-			System.out.println("Please configure passwd property.");
+			log("Please configure passwd property.");
 			isOk = false;
 		}
 		if(driver == null) {
-			System.out.println("Please configure driver property.");
+			log("Please configure driver property.");
 			isOk = false;
 		}
         
@@ -253,12 +258,12 @@ public class SQLBase {
 			System.exit(1);
 		}
 			
-        System.out.println("url - " + url + ", user - " + userid);
+        log("url - " + url + ", user - " + userid);
         
         try {
         	Class.forName(driver);
         } catch(ClassNotFoundException e) {
-        	System.out.println("Error loading database driver " + driver + ". " +
+        	log("Error loading database driver " + driver + ". " +
 			"Make sure to put JDBC driver jar in classpath.");
         	e.printStackTrace();
         	throw new RuntimeException(e);
@@ -270,10 +275,21 @@ public class SQLBase {
 			conn = DriverManager.getConnection(url, userid, passwd);
 			conn.setAutoCommit(false);
 		} catch (SQLException e) {
-			System.out.println("");
+			log("");
 			e.printStackTrace();
 		}
 
         return conn;
+	}
+	
+	public void log(String message) {
+		System.out.println(logDate() + " " + message);
+	}
+	
+	public String logDate() {
+		String dateStr = null;
+		Date date = new Date();
+		dateStr = dateFormat.format(date);
+		return dateStr;
 	}
 }

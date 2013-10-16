@@ -33,6 +33,8 @@ public class SQLBase {
 	protected static String SCHEMA2_CONN = "SCHEMA2";
 	protected static String FILE_SEPERATOR = ",";
 	
+	protected int commitEvery = -1;
+	
 	protected DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss SSS");
 
 	protected void loadConfig(String configFile) {
@@ -47,6 +49,11 @@ public class SQLBase {
 		this.configFile = configFile;
 		config = props;
 		loadSqlFileList();
+		
+		String commitEveryStr = config.getProperty("commitevery");
+		if(commitEveryStr != null) {
+			commitEvery = Integer.parseInt(commitEveryStr);
+		}
 	}
 	
 	protected void loadSqlFileList() {
@@ -186,6 +193,17 @@ public class SQLBase {
 		} else {
 			rollback();
 		}
+	}
+	
+	public boolean commitEvery(int count) throws SQLException {
+		
+		if(commitEvery > 0 && count % commitEvery == 0) {
+			log("Committ/Rollback every " + commitEvery);
+			commitOrRollback();
+			return true;
+		}
+
+		return false;
 	}
 	
 	protected void createConnections() throws Exception {

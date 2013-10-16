@@ -53,24 +53,29 @@ public class SQLExecuteFromFile extends SQLBase {
 
 		int count = 0;
 		long overall = 0;
+		Connection conn = null;
+		Statement stmt = null;
 		try {
+			conn = getConnection();
+			stmt = conn.createStatement();
 			for (String sqlStr : sqlList) {
+				long start = System.currentTimeMillis();
+				
 				String sql = sqlStr;
 				CURRENT_SQL = sql;
 				if("true".equalsIgnoreCase(config.getProperty("printsql"))) {
 					System.out.print(count + 1 + " - " + sql);
 				}
-				Connection conn = getConnection();
-				Statement stmt = conn.createStatement();
-				long start = System.currentTimeMillis();
+
 				int c = stmt.executeUpdate(sql);
+				count++;
+				commitEvery(count);
+				
 				long end = System.currentTimeMillis();
-				stmt.close();
 				
 				long time = end - start;
 				overall += time;
-				count++;
-				commitEvery(count);
+				
 				if("true".equalsIgnoreCase(config.getProperty("printsql"))) {
 					System.out.println(", updated - " + c + " records, took " + time + "ms");
 				}
@@ -80,6 +85,8 @@ public class SQLExecuteFromFile extends SQLBase {
 		} catch(SQLException e) {
 			log("Error executing SQL - " + CURRENT_SQL);
 			throw new RuntimeException(e);
+		} finally {
+			stmt.close();
 		}
 		log("Finished executing SQL in " + formatTime(overall));
 	}

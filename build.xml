@@ -4,7 +4,7 @@
               To include a user specific buildfile here, simply create one in the same
               directory with the processing instruction <?eclipse.ant.import?>
               as the first entry and export the buildfile again. -->
-<project basedir="." default="build" name="DBUtilities">
+<project basedir="." default="jar" name="DBUtilities">
     <property environment="env"/>
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.6"/>
@@ -34,4 +34,10 @@
             <classpath refid="DBUtilities.classpath"/>
         </javac>
     </target>
+	
+	<target name="jar" depends="build-project">
+		<echo message="${ant.project.name}: ${ant.file}"/>
+		<jar destfile="lib/dbutility.jar" basedir="classes"/>
+
+	</target>
 </project>

@@ -22,6 +22,8 @@ public class ExportAsInsertsOracle extends SQLBase {
 	
 	protected static String TABLE = "table";
 	
+	protected static String EXPORT_SQL = "sql";
+	
 	protected Connection sourceConn = null;
 	
 	protected Statement sourceStmt = null;
@@ -49,7 +51,17 @@ public class ExportAsInsertsOracle extends SQLBase {
 			loadConfig(CONFIG_FILE);
 			createConnections();
 			String tableName = config.getProperty(TABLE);
-			getTableData(tableName);
+			String sql = config.getProperty(EXPORT_SQL);
+			
+			if(tableName != null) {
+				getTableData(tableName);
+			} else if(sql != null) {
+				getSqlData(sql);
+			} else {
+				log("Please configure " + TABLE + " or " + EXPORT_SQL);
+				return;
+			}
+			
 			metaData = loadMetadata(sourceRs);
 			generateInserts(tableName, columnNames, sourceRs);
 			EXIT_STATUS = 0;
@@ -140,6 +152,11 @@ public class ExportAsInsertsOracle extends SQLBase {
 	}
 	
 	protected void getTableData(String tableName) {
+		String sql = "SELECT * FROM " + tableName;
+		getSqlData(sql);
+	}
+	
+	protected void getSqlData(String sql) {
 
 		try {
 			sourceConn = getConnection();
@@ -149,7 +166,7 @@ public class ExportAsInsertsOracle extends SQLBase {
 				}
 			} catch(Exception e) {}
 			sourceStmt = sourceConn.createStatement();
-			sourceRs = sourceStmt.executeQuery("SELECT * FROM " + tableName);
+			sourceRs = sourceStmt.executeQuery(sql);
 		} catch(SQLException sqle) {
 			throw new RuntimeException(sqle);
 		} 

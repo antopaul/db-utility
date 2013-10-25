@@ -53,17 +53,20 @@ public class ExportAsInsertsOracle extends SQLBase {
 			String tableName = config.getProperty(TABLE);
 			String sql = config.getProperty(EXPORT_SQL);
 			
-			if(tableName != null) {
+			if(tableName != null && sql == null) {
 				getTableData(tableName);
-			} else if(sql != null) {
+			} else if(tableName != null && sql != null) {
 				getSqlData(sql);
-			} else {
-				log("Please configure " + TABLE + " or " + EXPORT_SQL);
+			} else if(tableName == null && sql != null){
+				log("When using sql, table name must be specified");
+				return;
+			} else if(tableName == null && sql == null) {
+				log("Please specify table or table and sql");
 				return;
 			}
 			
 			metaData = loadMetadata(sourceRs);
-			generateInserts(tableName, columnNames, sourceRs);
+			generateInserts(tableName.toUpperCase(), columnNames, sourceRs);
 			EXIT_STATUS = 0;
 
 		} catch (Throwable t) {

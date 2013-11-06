@@ -10,9 +10,18 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.dbutility.SQLBase;
 
+
+/**
+ * Class to execute multiple SELECT statements. Each statement should end with semicolon(;).
+ * Multiple statements can be specified. Useful in testing timing of SQL. It has option to
+ * print n number of slowest and fastest SQL. Also a threshold can be set in milliseconds,
+ * SQL exceeding this threshold is printed to console. 
+ */
 public class SQLSelectFromFile extends SQLBase {
 
 	private Map<Integer, Long> timing = new HashMap<Integer, Long>();
@@ -35,6 +44,8 @@ public class SQLSelectFromFile extends SQLBase {
 	protected void execute() {
 		try {
 			loadConfig(CONFIG_FILE);
+			// Never commit
+			config.setProperty("commitdbchanges","false");
 			addShutdownHook();
 			createConnections();
 			for(int i=0; i < sqlFileList.size(); i++) {
@@ -49,7 +60,8 @@ public class SQLSelectFromFile extends SQLBase {
 			EXIT_STATUS = 0;
 			printThresholdExceeded();
 			timing = sortByValue(timing);
-			printTop5();
+			printSlowest();
+			printFastest();
 		} catch (Throwable t) {
 			t.printStackTrace();
 		} finally {
@@ -76,19 +88,40 @@ public class SQLSelectFromFile extends SQLBase {
 		}
 	}
 	
-	protected void printTop5() {
-		int printtopcount = Integer.parseInt(config.getProperty("printtopcount"));
-		if(printtopcount == -1) {
+	protected void printSlowest() {
+		int printtopslowestcount = Integer.parseInt(config.getProperty("printtopslowestcount"));
+		if(printtopslowestcount == -1) {
 			return;
 		}
-		System.out.println("Printing top " + printtopcount);
+		System.out.println("Printing slowest top " + printtopslowestcount);
 		int count = 0;
 		for(Map.Entry<Integer, Long> entry : timing.entrySet()) {
 			Integer index = entry.getKey();
 			Long time = entry.getValue();
 			String sql = sqlList.get(index);
 			System.out.println("Index - " + index + ", Time - " + time + " ,SQL - " + sql);
-			if(++count >= printtopcount) {
+			if(++count >= printtopslowestcount) {
+				break;
+			}
+		}
+	}
+	
+	protected void printFastest() {
+		int printtopfastestcount = Integer.parseInt(config.getProperty("printtopfastestcount"));
+		
+		if(printtopfastestcount == -1) {
+			return;
+		}
+		System.out.println("Printing fastest top " + printtopfastestcount);
+		int count = 0;
+		List<Map.Entry<Integer, Long>> list = new ArrayList(timing.entrySet());
+		for(int i = list.size() -1; i >= 0; i--) {
+			Map.Entry<Integer, Long> entry = list.get(i);
+			Integer index = entry.getKey();
+			Long time = entry.getValue();
+			String sql = sqlList.get(index);
+			System.out.println("Index - " + index + ", Time - " + time + " ,SQL - " + sql);
+			if(++count >= printtopfastestcount) {
 				break;
 			}
 		}
